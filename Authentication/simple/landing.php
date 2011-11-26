@@ -1,34 +1,3 @@
-<?php
-
-//user => password
-$users = array('admin' => 'mypass', 'guest' => 'guest', 'jessie' => 'pwd');
-
-
-if (!isset($_SERVER['PHP_AUTH_USER'])) {
-    header('WWW-Authenticate: Basic realm="My Realm"');
-    header('HTTP/1.0 401 Unauthorized');
-    echo 'Text to send if user hits Cancel button';
-    exit;
-} else {
-    $userName = $_SERVER['PHP_AUTH_USER']; 
-    $passWord = $_SERVER['PHP_AUTH_PW']; 
-    
-    if (strcmp($users[$userName], $passWord) == 0)
-    {
-	echo "<p>Hello {$userName}.</p>";
-    echo "<p>You entered {$passWord} as your password.</p>";
-    }
-    else
-    {
-    echo 'wrong pwd';
-    die('Wrong Credentials!');
-     }
-}
-
-
-  
-?>
-
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
     <link rel="stylesheet" type="text/css" href="default.css" />
@@ -44,6 +13,73 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
 </head>
 <body>
 
+
+<?php
+	
+	$token = $_POST['token'];
+    require 'api_key.php'; //require 'var/php/include/api_key.php'
+
+	
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, 'https://rpxnow.com/api/v2/auth_info');
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS,
+				array('token' =>  $token,
+					  'apiKey' => $apiKey));
+    curl_setopt($curl, CURLOPT_FAILONERROR, true);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); 
+    $profileString = curl_exec($curl); 
+	
+	
+	
+    if (!$profileString){
+		echo '<p>Curl error: ' . curl_error($curl);
+		echo '<p>HTTP code: ' . curl_errno($curl);
+    } else {
+		$profile = json_decode($profileString);
+		if (property_exists($profile, 'err')) {
+			echo '<p>Engage error: ' . $profile->err->msg;
+		} else {
+			session_start();
+			if (property_exists($profile->profile, 'displayName')) {
+				$_SESSION['userName'] = $profile->profile->displayName;
+				
+					//extract domain
+				$_SESSION['verifiedEmail'] = $profile->profile->verifiedEmail;
+				
+			} else {
+				$_SESSION['userName'] = '(Anonymous Coward)';
+			}
+			echo '<p>Hi there ' . $_SESSION['userName'] . '!';
+			echo '<p>verifiedEmail is ' . $_SESSION['verifiedEmail'] . '!';
+			
+			
+				//check to see if incentivementoringprogram.org domain 
+			
+			$impDomain = '@incentivementoringprogram.org'; 
+			$verifiedEmail = $_SESSION['verifiedEmail']; 
+			
+			
+			$domain = strstr($verifiedEmail, '@'); 
+			
+			
+			if (strcasecmp($domain, $impDomain) == 0)
+			{
+				echo 'IMP domain!!!'; 
+			} 
+			else
+			{
+				echo 'Not an IMP domain!!! Go away'; 
+			}
+			
+		}
+		
+    }
+	
+    curl_close($curl);
+	
+	
+	?>
 
 
 
