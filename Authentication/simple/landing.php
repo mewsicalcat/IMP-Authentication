@@ -1,7 +1,83 @@
-<?php session_start();?> 
+<?php session_start(); 	
+$token = $_POST['token'];
+
+if (!isset($token))
+{
+header('Location: http://incentivementoringprogram.org/simple/signin.html');
+exit; 
+}
+ require 'api_key.php'; 
+    $curl = curl_init(); 
+    curl_setopt($curl, CURLOPT_URL, 'https://rpxnow.com/api/v2/auth_info');
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS,
+				array('token' =>  $token,
+					  'apiKey' => $apiKey));
+    curl_setopt($curl, CURLOPT_FAILONERROR, true);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); 
+    $profileString = curl_exec($curl); 
+		
+    if (!$profileString){
+		echo '<p>Curl error: ' . curl_error($curl);
+		echo '<p>HTTP code: ' . curl_errno($curl);
+    } else 
+    {
+
+		
+		$profile = json_decode($profileString);
+		
+	
+		if (property_exists($profile, 'err')) {
+		        echo $profileString; 
+			echo '<p>Engage error!!!!!!!!!!: ' . $profile->err->msg;
+			exit; 
+		} else {
+
+			session_start(); //creates a session or resumes current one based on current session id that's being passed via a request, such as GET, POST, or a cookie 
+
+			if (property_exists($profile->profile, 'displayName')) {
+				$_SESSION['userName'] = $profile->profile->displayName;
+				
+					//extract domain
+				$_SESSION['verifiedEmail'] = $profile->profile->verifiedEmail;
+				
+			} else {
+				$_SESSION['userName'] = '(Anonymous Coward)';
+			}
+						
+			$impDomain = '@incentivementoringprogram.org'; 
+			$verifiedEmail = $_SESSION['verifiedEmail']; 
+			
+			$domain = strstr($verifiedEmail, '@'); 
+			
+			if (strcasecmp($domain, $impDomain) == 0)
+			{
+				//set valid user variable
+				$validSession =''; 
+				echo '<p>Hi there ' . $_SESSION['userName'] . '!';
+
+				echo 'IMP domain!!!'; 
+			} 
+			else
+			{
+        		
+        		header('Location: http://incentivementoringprogram.org/simple/signin.html'); 
+			echo 'Not an IMP domain! Please log in with your IMP account'; 
+        		exit;
+    		}
+			}
+			
+		}
+		
+    curl_close($curl);
+?>
+
+
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
+
+
     <link rel="stylesheet" type="text/css" href="default.css" />
 
     <!--jquery UI files-->
@@ -14,75 +90,6 @@
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 </head>
 <body>
-
-<?php	
-	$token = $_POST['token'];
-    require 'api_key.php'; //require 'var/php/include/api_key.php'
-
-	
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, 'https://rpxnow.com/api/v2/auth_info');
-    curl_setopt($curl, CURLOPT_POST, true);
-    curl_setopt($curl, CURLOPT_POSTFIELDS,
-				array('token' =>  $token,
-					  'apiKey' => $apiKey));
-    curl_setopt($curl, CURLOPT_FAILONERROR, true);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); 
-    $profileString = curl_exec($curl); 
-	
-	
-	
-    if (!$profileString){
-//		echo '<p>Curl error: ' . curl_error($curl);
-//		echo '<p>HTTP code: ' . curl_errno($curl);
-    } else {
-		$profile = json_decode($profileString);
-		if (property_exists($profile, 'err')) {
-//			echo '<p>Engage error: ' . $profile->err->msg;
-		} else {
-			session_start(); //creates a session or resumes current one based on current session id that's being passed via a request, such as GET, POST, or a cookie 
-			if (property_exists($profile->profile, 'displayName')) {
-				$_SESSION['userName'] = $profile->profile->displayName;
-				
-					//extract domain
-				$_SESSION['verifiedEmail'] = $profile->profile->verifiedEmail;
-				
-			} else {
-				$_SESSION['userName'] = '(Anonymous Coward)';
-			}
-			echo '<p>Hi there ' . $_SESSION['userName'] . '!';
-			echo '<p>verifiedEmail is ' . $_SESSION['verifiedEmail'] . '!';
-			
-			
-				//check to see if incentivementoringprogram.org domain 
-			
-			$impDomain = '@incentivementoringprogram.org'; 
-			$verifiedEmail = $_SESSION['verifiedEmail']; 
-			
-			
-			$domain = strstr($verifiedEmail, '@'); 
-			
-			
-			if (strcasecmp($domain, $impDomain) == 0)
-			{
-				echo 'IMP domain!!!'; 
-			} 
-			else
-			{
-				echo 'Not an IMP domain!!! Go away'; 
-			}
-			
-		}
-		
-    }
-	
-    curl_close($curl);
-	
-	
-	?>
-
-
-
 
 
 

@@ -1,4 +1,5 @@
-
+<?php session_start(); 	
+?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <link rel="stylesheet" type="text/css" href="default.css" />
