@@ -1,3 +1,5 @@
+<?php session_start();?> 
+
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
     <link rel="stylesheet" type="text/css" href="default.css" />
@@ -13,9 +15,7 @@
 </head>
 <body>
 
-
-<?php
-	
+<?php	
 	$token = $_POST['token'];
     require 'api_key.php'; //require 'var/php/include/api_key.php'
 
@@ -33,14 +33,14 @@
 	
 	
     if (!$profileString){
-		echo '<p>Curl error: ' . curl_error($curl);
-		echo '<p>HTTP code: ' . curl_errno($curl);
+//		echo '<p>Curl error: ' . curl_error($curl);
+//		echo '<p>HTTP code: ' . curl_errno($curl);
     } else {
 		$profile = json_decode($profileString);
 		if (property_exists($profile, 'err')) {
-			echo '<p>Engage error: ' . $profile->err->msg;
+//			echo '<p>Engage error: ' . $profile->err->msg;
 		} else {
-			session_start();
+			session_start(); //creates a session or resumes current one based on current session id that's being passed via a request, such as GET, POST, or a cookie 
 			if (property_exists($profile->profile, 'displayName')) {
 				$_SESSION['userName'] = $profile->profile->displayName;
 				
